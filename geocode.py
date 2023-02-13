@@ -1,5 +1,6 @@
 import requests
 import pygame
+from time import sleep
 import os
 
 
@@ -27,22 +28,51 @@ def get_spn(features):
 
 
 def show_map():
+    spn1 = 0.3
     map_params = {
         "ll": ",".join(["73.355852", "54.972361"]),
-        "spn": ",".join(["0.2", "0.2"]),
+        "spn": ",".join(["0.3", "0.3"]),
         "l": "map"
     }
     print('OK')
     map_api_server = "http://static-maps.yandex.ru/1.x/"
     response = requests.get(map_api_server, params=map_params)
     print("OK")
-    with open("map.png", 'wb') as f:
+    with open("map.jpg", 'wb') as f:
         f.write(response.content)
     pygame.init()
     screen = pygame.display.set_mode((600, 450))
-    screen.blit(pygame.image.load("map.png"), (0, 0))
-    pygame.display.flip()
-    while pygame.event.wait().type != pygame.QUIT:
-        pass
+    screen.blit(pygame.image.load("map.jpg"), (0, 0))
+    running = True
+    
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_s:
+                    if spn1 + 1 > 0.2:
+                        spn1 += 1
+                        map_params['spn'] = ",".join([str(spn1), str(spn1)])
+                        response = requests.get(map_api_server, params=map_params)
+                        print("OK")
+                        with open("map.jpg", 'wb') as f:
+                            f.write(response.content)
+
+                        screen.blit(pygame.image.load("map.jpg"), (0, 0))
+                        sleep(0.1)
+                    
+                if event.key == pygame.K_w:
+                    if spn1 - 1 > 0.2:
+                        spn1 -= 1
+                        map_params['spn'] = ",".join([str(spn1), str(spn1)])
+                        response = requests.get(map_api_server, params=map_params)
+                        print("OK")
+                        with open("map.jpg", 'wb') as f:
+                            f.write(response.content)
+                        screen.blit(pygame.image.load("map.jpg"), (0, 0))
+                        sleep(0.1)
+                    
+        pygame.display.flip()
     pygame.quit()
-    os.remove('map.png')
+    os.remove('map.jpg')
